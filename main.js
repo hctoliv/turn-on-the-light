@@ -44,39 +44,34 @@
   });
   heroIO.observe($('#hero'));
 
-  /* ---------- intro: acenda a luz ---------- */
+  /* ---------- intro: a lâmpada acende, o logo pisca, entra a home ---------- */
   const intro = $('#intro');
   let lit = false;
-  const light = (instant) => {
+  const light = () => {
     if (lit) return;
     lit = true;
-    if (instant) doc.classList.add('no-flash');
     doc.classList.add('lit');
     body.classList.remove('locked');
-    intro.setAttribute('aria-hidden', 'true');
     heroVideos.forEach(play);
-    try { sessionStorage.setItem('tt-lit', '1'); } catch (e) {}
     removeIntroListeners();
   };
   const onAny = () => light();
-  const onKey = (e) => { if (['Enter', ' ', 'ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); light(); } };
+  const onKey = (e) => { if (['Enter', ' ', 'Escape', 'ArrowDown', 'PageDown'].includes(e.key)) light(); };
   const removeIntroListeners = () => {
     intro.removeEventListener('click', onAny);
     window.removeEventListener('wheel', onAny);
     window.removeEventListener('touchmove', onAny);
     window.removeEventListener('keydown', onKey);
   };
-  let seen = false;
-  try { seen = sessionStorage.getItem('tt-lit') === '1'; } catch (e) {}
-  if (seen || reduce) {
-    light(true);
+  if (reduce) {
+    light();
   } else {
-    body.classList.add('locked');
+    intro.classList.add('play');
     intro.addEventListener('click', onAny);
     window.addEventListener('wheel', onAny, { passive: true });
     window.addEventListener('touchmove', onAny, { passive: true });
     window.addEventListener('keydown', onKey);
-    setTimeout(() => light(), 7000);
+    setTimeout(light, 3400);
   }
 
   /* ---------- header + menu ---------- */
@@ -93,7 +88,7 @@
   /* ---------- manifesto: palavras acendem com a rolagem ---------- */
   const mani = $('#manifesto');
   const maniText = $('#maniText');
-  const hotWords = /^(iluminar|luz|brilho|acender|conectam|emocionam|transformam)/i;
+  const hotWords = /^(luz|sempre|histórias?|permanecem)/i;
   const words = maniText.textContent.trim().split(/\s+/);
   maniText.innerHTML = words.map((w) => `<span class="w${hotWords.test(w) ? ' h' : ''}">${w}</span>`).join(' ');
   const wordEls = $$('.w', maniText);
@@ -101,12 +96,14 @@
 
   /* ---------- scroll único (rAF) ---------- */
   const reels = $$('.reel');
+  const lightZones = $$('.day, .contato');
   let lastY = window.scrollY;
   let ticking = false;
   const onScroll = () => {
     const y = window.scrollY;
     const vh = window.innerHeight;
     hd.classList.toggle('solid', y > 40);
+    hd.classList.toggle('on-day', lightZones.some((z) => { const r = z.getBoundingClientRect(); return r.top <= 32 && r.bottom > 32; }));
     hd.classList.toggle('hide', y > vh && y > lastY && !body.classList.contains('menu-open'));
     lastY = y;
 
